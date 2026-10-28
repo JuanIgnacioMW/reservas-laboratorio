@@ -27,3 +27,11 @@
 **Decisiones**
 - Lenguaje: Python. Almacenamiento: SQLite. Interfaz: consola.
 - Especificación inicial: docs/especificacion.md.
+- 
+ - En tarea 1 delegada al agente
+ - **Verificación real:** al ejecutar `pytest` (Python 3.13.2, pytest 9.2.0) falló la
+  recolección con ModuleNotFoundError: No module named 'reservas'.
+- **Causa:** pytest no tenía `src` en el path.
+- **Corrección:** [hecha por mí] agregando pyproject.toml con
+  `pythonpath = ["src"]`.
+- **Resultado tras corregir:** [completar con la salida real de pytest].
