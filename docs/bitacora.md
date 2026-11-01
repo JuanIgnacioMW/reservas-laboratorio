@@ -215,5 +215,16 @@ El chat mostró `copilot-instructions.md` entre las referencias usadas, cuanbdo 
     en esta tarea la cancelación se simula en una prueba editando la base directamente.
   - Los tests no cierran el caso de hora sin cero inicial de forma automática.
 
+git log --oneline
+bf179ee (HEAD -> main) Tarea 2: persistencia con SQLite; corrige transacción, agrega close() y amplía pruebas tras revisión
+dfecc17 (origin/main, origin/HEAD) Tarea 2 (agente): persistencia con SQLite y pruebas, versión original de Copilot
+a564004 Ignora la base de datos local en .gitignore
+87ce210 Se agrega la persitencia en el archivo copilot-intructions
+7ce003b Tarea 1: modelo de datos, validaciones y pruebas
+5ca2c77 Se agrega instrucciones del agente con regla de turnos consecutivos
+c3efc34 Agrega bitácora con la validación del entorno
+401d4cb Agrega .gitignore para Python
+979571a Agrega especificación inicial.md
+cd152c6 Initial commit
 
 
