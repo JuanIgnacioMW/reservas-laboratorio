@@ -38,3 +38,10 @@ para validar: las fechas pasadas se permiten (ver especificación).
 - No instales paquetes sin pedirme permiso.
 - No leas ni escribas archivos fuera del repo, ni uses credenciales o datos reales.
 - Los solicitantes de las reservas son ficticios.
+
+## Persistencia
+- La base es SQLite en `data/reservas.db`. No la subas a Git ni la borres.
+- Las pruebas usan siempre una base temporal (`tmp_path`), nunca `data/reservas.db`.
+- Usá consultas con parámetros (`?`), nunca texto armado con f-strings.
+- Para probar un reinicio, abrí una nueva conexión o instancia sobre el mismo archivo.
+- Reutilizá `validar_reserva` y `se_superponen`; no dupliques reglas.

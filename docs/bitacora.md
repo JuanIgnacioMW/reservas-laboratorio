@@ -35,3 +35,45 @@
 - **Corrección:** [hecha por mí] agregando pyproject.toml con
   `pythonpath = ["src"]`.
 - **Resultado tras corregir:** [completar con la salida real de pytest].
+- Ejecucion en la terminal:
+================================ test session starts ================================
+platform win32 -- Python 3.13.2, pytest-9.2.0, pluggy-1.7.0
+rootdir: C:\Users\Flia Meza\Desktop\Reservas-Laboratorio\reservas-laboratorio
+collected 0 items / 1 error                                                          
+
+====================================== ERRORS =======================================
+_______________________ ERROR collecting tests/test_modelo.py _______________________
+ImportError while importing test module 'C:\Users\Flia Meza\Desktop\Reservas-Laboratorio\reservas-laboratorio\tests\test_modelo.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_modelo.py:3: in <module>
+    from reservas.modelo import INVENTARIO, se_superponen, validar_reserva
+E   ModuleNotFoundError: No module named 'reservas'
+============================== short test summary info ==============================
+ERROR tests/test_modelo.py
+!!!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!!!!
+================================= 1 error in 0.16s ==================================
+PS C:\Users\Flia Meza\Desktop\Reservas-Laboratorio\reservas-laboratorio> pytest
+================================ test session starts ================================
+platform win32 -- Python 3.13.2, pytest-9.2.0, pluggy-1.7.0
+rootdir: C:\Users\Flia Meza\Desktop\Reservas-Laboratorio\reservas-laboratorio
+configfile: pyproject.toml
+testpaths: tests
+collected 12 items                                                                   
+
+tests\test_modelo.py ............                                              [100%]
+
+================================ 12 passed in 0.06s =================================
+
+Commit de la tarea 1
+
+PS C:\Users\Flia Meza\Desktop\Reservas-Laboratorio\reservas-laboratorio> git log --oneline
+7ce003b (HEAD -> main, origin/main, origin/HEAD) Tarea 1: modelo de datos, validaciones y pruebas
+5ca2c77 Se agrega instrucciones del agente con regla de turnos consecutivos
+c3efc34 Agrega bitácora con la validación del entorno
+401d4cb Agrega .gitignore para Python
+979571a Agrega especificación inicial.md
+cd152c6 Initial commit
