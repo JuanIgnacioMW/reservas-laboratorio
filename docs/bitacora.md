@@ -351,5 +351,25 @@ No modifiqué archivos de tareas anteriores.
   - Los mensajes de argparse están traducidos solo en parte y la ayuda (`--help`) sigue en inglés.
   - `disponibilidad` devuelve código de salida 1 cuando la unidad está ocupada.
 
-
+git log --oneline
+0432474 (HEAD -> main) Registra episodio 3 en la bitácora
+f87bb07 (origin/main, origin/HEAD) Tarea 3B: se reemplaza parches de importación del agente por instalación editable
+e8d2c54 Tarea 3B (realizado por el agente): interfaz de consola con argparse, reiniciar_datos y pruebas
+cb95707 Tarea 3A: restaura comentario de transacción, quita bloqueo en la consulta y prueba disponibilidad tras cancelar
+294ec4b Tarea 3A (Realizado por agente copilot): cancelación y consulta de disponibilidad en el r
+epositorio
+b363121 Se agrega la cancelacion, disponibilidad y consula en el archivo copilot-intructions
+6a2f5a9 Tarea 2: se agrega todos los hash de los commit de este episodio 2
+b2d83f0 Tarea 2: se agrega hash de los commit de este episodio 2
+bf179ee Tarea 2: persistencia con SQLite; corrige transacción, agrega close() y amplía pruebas tr
+as revisión
+dfecc17 Tarea 2 (agente): persistencia con SQLite y pruebas, versión original de Copilot
+a564004 Ignora la base de datos local en .gitignore
+87ce210 Se agrega la persitencia en el archivo copilot-intructions
+7ce003b Tarea 1: modelo de datos, validaciones y pruebas
+5ca2c77 Se agrega instrucciones del agente con regla de turnos consecutivos
+c3efc34 Agrega bitácora con la validación del entorno
+401d4cb Agrega .gitignore para Python
+979571a Agrega especificación inicial.md
+cd152c6 Initial commit
 
