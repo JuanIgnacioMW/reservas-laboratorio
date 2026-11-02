@@ -183,3 +183,11 @@ def test_reinicio_recupera_reservas_activas_y_canceladas(tmp_path):
         assert repo_2.obtener_reserva(activa["id"]) == activa
         assert repo_2.obtener_reserva(cancelada["id"]) == cancelada
         assert repo_2.listar_reservas() == [activa, cancelada]
+
+def test_consultar_disponibilidad_ignora_reservas_canceladas(repo):
+    reserva = repo.crear_reserva("MIC-01", "Ana", f"{DIA} 10:00", f"{DIA} 11:00")
+    repo.cancelar_reserva(reserva["id"])
+
+    assert repo.consultar_disponibilidad(
+        "MIC-01", f"{DIA} 10:00", f"{DIA} 11:00"
+    ) == (True, None)
