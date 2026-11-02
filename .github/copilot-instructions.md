@@ -45,3 +45,11 @@ para validar: las fechas pasadas se permiten (ver especificación).
 - Usá consultas con parámetros (`?`), nunca texto armado con f-strings.
 - Para probar un reinicio, abrí una nueva conexión o instancia sobre el mismo archivo.
 - Reutilizá `validar_reserva` y `se_superponen`; no dupliques reglas.
+
+## Cancelación, disponibilidad y consola
+- Cancelar cambia el estado a 'cancelada'; nunca borres filas.
+- La consulta de disponibilidad y la creación de reservas deben compartir la misma validación y la misma regla de superposición (no dupliques lógica).
+- La consola usa `argparse`, sin dependencias nuevas, y se ejecuta con `python -m reservas`.
+- Los errores de uso salen por stderr, en español, con código de salida distinto de cero.
+- Los tests de la consola usan siempre `--db` con una base temporal (`tmp_path`).
+- Reemplazá cualquier simulación provisoria de cancelación en los tests por la función real.
