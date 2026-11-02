@@ -1,5 +1,3 @@
-import sqlite3
-
 import pytest
 
 from reservas.repositorio import RepositorioReservas
@@ -99,41 +97,89 @@ def test_obtener_reserva_inexistente_devuelve_none(repo):
     assert repo.obtener_reserva(999) is None
 
 
-def _marcar_cancelada(ruta_db, reserva_id):
-    # Provisorio: la cancelación todavía no existe en el repositorio (Tarea 3).
-    # Se simula editando la base directamente, para comprobar que una reserva
-    # cancelada no bloquea el intervalo.
-    conexion = sqlite3.connect(ruta_db)
-    try:
-        with conexion:
-            conexion.execute(
-                "UPDATE reservas SET estado = 'cancelada' WHERE id = ?",
-                (reserva_id,),
-            )
-    finally:
-        conexion.close()
+def test_cancelar_reserva_conserva_id_y_datos(repo):
+    reserva = repo.crear_reserva("MIC-01", "Ana", f"{DIA} 10:00", f"{DIA} 11:00")
+
+    cancelada = repo.cancelar_reserva(reserva["id"])
+
+    assert cancelada["id"] == reserva["id"]
+    assert cancelada["unidad"] == reserva["unidad"]
+    assert cancelada["solicitante"] == reserva["solicitante"]
+    assert cancelada["inicio"] == reserva["inicio"]
+    assert cancelada["fin"] == reserva["fin"]
+    assert cancelada["estado"] == "cancelada"
+    assert repo.obtener_reserva(reserva["id"]) == cancelada
+    assert repo.listar_reservas() == [cancelada]
 
 
-def test_reserva_cancelada_no_bloquea_el_intervalo(tmp_path):
-    ruta_db = tmp_path / "reservas.db"
+def test_cancelar_reserva_libera_el_intervalo_y_permite_rereservar(repo):
+    original = repo.crear_reserva("MIC-01", "Ana", f"{DIA} 10:00", f"{DIA} 11:00")
 
-    with RepositorioReservas(ruta_db) as repo:
-        original = repo.crear_reserva("MIC-01", "Ana", f"{DIA} 10:00", f"{DIA} 11:00")
-        _marcar_cancelada(ruta_db, original["id"])
-
-        nueva = repo.crear_reserva("MIC-01", "Luis", f"{DIA} 10:00", f"{DIA} 11:00")
-        reservas = repo.listar_reservas()
+    repo.cancelar_reserva(original["id"])
+    nueva = repo.crear_reserva("MIC-01", "Luis", f"{DIA} 10:00", f"{DIA} 11:00")
+    reservas = repo.listar_reservas()
 
     assert nueva["id"] != original["id"]
+    assert nueva["estado"] == "activa"
     assert [r["estado"] for r in reservas] == ["cancelada", "activa"]
 
 
-def test_reinicio_recupera_reservas_guardadas(tmp_path):
+def test_cancelar_reserva_inexistente_o_ya_cancelada_falla(repo):
+    with pytest.raises(ValueError, match="No existe"):
+        repo.cancelar_reserva(999)
+
+    reserva = repo.crear_reserva("MIC-01", "Ana", f"{DIA} 10:00", f"{DIA} 11:00")
+    repo.cancelar_reserva(reserva["id"])
+
+    with pytest.raises(ValueError, match="cancelada"):
+        repo.cancelar_reserva(reserva["id"])
+
+
+def test_consultar_disponibilidad_coincide_con_crear_reserva(repo):
+    original = repo.crear_reserva("MIC-01", "Ana", f"{DIA} 10:00", f"{DIA} 11:00")
+
+    assert repo.consultar_disponibilidad("MIC-01", f"{DIA} 10:30", f"{DIA} 11:30") == (
+        False,
+        original,
+    )
+    with pytest.raises(ValueError, match="superpone"):
+        repo.crear_reserva("MIC-01", "Luis", f"{DIA} 10:30", f"{DIA} 11:30")
+
+    assert repo.consultar_disponibilidad("MIC-01", f"{DIA} 11:00", f"{DIA} 12:00") == (
+        True,
+        None,
+    )
+    reserva_consecutiva = repo.crear_reserva("MIC-01", "Luis", f"{DIA} 11:00", f"{DIA} 12:00")
+    assert reserva_consecutiva["estado"] == "activa"
+
+    assert repo.consultar_disponibilidad("MIC-02", f"{DIA} 10:00", f"{DIA} 11:00") == (
+        True,
+        None,
+    )
+
+
+@pytest.mark.parametrize(
+    "unidad, inicio, fin",
+    [
+        ("XXX-99", f"{DIA} 10:00", f"{DIA} 11:00"),
+        ("MIC-01", "2026-02-30 10:00", f"{DIA} 11:00"),
+        ("MIC-01", f"{DIA} 11:00", f"{DIA} 11:00"),
+    ],
+)
+def test_consultar_disponibilidad_rechaza_entradas_invalidas(repo, unidad, inicio, fin):
+    with pytest.raises(ValueError):
+        repo.consultar_disponibilidad(unidad, inicio, fin)
+
+
+def test_reinicio_recupera_reservas_activas_y_canceladas(tmp_path):
     ruta_db = tmp_path / "reservas.db"
 
     with RepositorioReservas(ruta_db) as repo_1:
-        reserva = repo_1.crear_reserva("MIC-01", "Ana", f"{DIA} 10:00", f"{DIA} 11:00")
+        activa = repo_1.crear_reserva("MIC-01", "Ana", f"{DIA} 10:00", f"{DIA} 11:00")
+        otra = repo_1.crear_reserva("MIC-02", "Luis", f"{DIA} 10:00", f"{DIA} 11:00")
+        cancelada = repo_1.cancelar_reserva(otra["id"])
 
     with RepositorioReservas(ruta_db) as repo_2:
-        assert repo_2.obtener_reserva(1) == reserva
-        assert repo_2.listar_reservas() == [reserva]
+        assert repo_2.obtener_reserva(activa["id"]) == activa
+        assert repo_2.obtener_reserva(cancelada["id"]) == cancelada
+        assert repo_2.listar_reservas() == [activa, cancelada]
