@@ -149,3 +149,8 @@ class RepositorioReservas:
         ).fetchall()
 
         return [self._a_diccionario(fila) for fila in filas]
+
+    def reiniciar_datos(self) -> None:
+        with self._conexion:
+            self._conexion.execute("BEGIN IMMEDIATE")
+            self._conexion.execute("DELETE FROM reservas")
