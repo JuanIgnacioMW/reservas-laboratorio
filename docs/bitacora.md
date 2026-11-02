@@ -229,3 +229,68 @@ c3efc34 Agrega bitácora con la validación del entorno
 cd152c6 Initial commit
 
 
+## Episodio 3: cancelación, disponibilidad y consola
+
+### Parte A: cancelación y disponibilidad en el repositorio
+
+- **Objetivo y requisito:** R10 y R11 de `docs/especificacion.md` (cancelar conservando
+  el registro y liberando el intervalo; la consulta de disponibilidad usa las mismas
+  reglas que la creación) y criterios CA5, CA6 y CA7. Incluye la persistencia de
+  reservas canceladas tras un reinicio.
+- **Contexto suministrado:** `docs/especificacion.md` y `.github/copilot-instructions.md`,
+  con la sección "Cancelación, disponibilidad y consola" agregada y subida antes de delegar. No se suministraron datos reales: los solicitantes son ficticios.
+- **Extracto de la instrucción:** "Tarea 3A: cancelación y disponibilidad en el repositorio. Sin consola todavía. consultar_disponibilidad(unidad, inicio, fin):
+  aplica la MISMA validación y la MISMA regla de superposición que crear_reserva
+  Refactorizá lo mínimo para compartir la lógica y no duplicarla."
+- **Acción del agente:** modificó `src/reservas/repositorio.py` y
+  `tests/test_repositorio.py`. Agregó `cancelar_reserva`, `consultar_disponibilidad` y  dos funciones auxiliares (`_validar_intervalo` y `_obtener_conflicto`), reemplazó el
+  helper provisorio `_marcar_cancelada` por la cancelación real y agregó pruebas. 
+  Al terminar informó: 
+        C:\Users\Flia Meza\Desktop\Reservas-Laboratorio\reservas-laboratorio> pytest
+============================= test session starts =============================
+platform win32 -- Python 3.13.2, pytest-9.2.0, pluggy-1.7.0
+rootdir: C:\Users\Flia Meza\Desktop\Reservas-Laboratorio\reservas-laboratorio
+configfile: pyproject.toml
+testpaths: tests
+collected 39 items
+
+tests\test_modelo.py ............                                        [ 30%]
+tests\test_repositorio.py ...........................                    [100%]
+
+============================= 39 passed in 0.47s   ==============================
+   Comandos que aprobé: 
+    pytest, git status, git diff
+- **Verificación humana (ejecutada por mí):**
+  - `git status`: solo `src/reservas/repositorio.py` y `tests/test_repositorio.py`
+    modificados; sin archivos nuevos ni dependencias.
+  - `git diff`: revisado completo.
+  - `pytest` (Python 3.13.2, pytest 9.2.0): 39 passed (12 de `test_modelo.py` y 27 de
+    `test_repositorio.py`), lo que coincide con lo informado por el agente.
+- **Puntos bien resueltos por el agente:** `crear_reserva` y `consultar_disponibilidad`  comparten `_obtener_conflicto`, por lo que la consulta y la reserva no pueden  discrepar (R10); cancelar conserva id y datos y falla con mensaje claro si la reserva  no existe o ya está cancelada; el test de reinicio ahora recupera una reserva activa y una cancelada.
+- **Hallazgos de la revisión:**
+  1. El agente borró el comentario que explicaba el `BEGIN IMMEDIATE` en
+     `crear_reserva`, algo que el prompt no pedía.
+  2. `_validar_intervalo` reutiliza `validar_reserva` pasando el solicitante inventado `"consulta"`. Funciona, pero acopla la consulta a esa regla.
+  3. `consultar_disponibilidad` abre `BEGIN IMMEDIATE` para una lectura, tomando el bloqueo de escritura sin necesitarlo.
+  4. Ningún test comprobaba directamente que la disponibilidad ignora las reservas canceladas.
+- **Decisión:** corregir. "Acepté la versión del agente en un primer commit y luego corregí: restauré el comentario y agregué la prueba de  disponibilidad tras cancelar. El atajo del solicitante `consulta` y el `BEGIN IMMEDIATE` en la lectura los acepté y documenté como limitación."
+- **Pruebas de mutación (ejecutadas por mí, con el commit del agente ya hecho):**
+  - Mutación A: en `_obtener_conflicto` de `src/reservas/repositorio.py` quité  `AND estado = 'activa'`. `pytest` → 1 failed, Y 38 passed; tests que  fallaron. Revertí con `git restore src/reservas/repositorio.py`; `pytest` → 39 passed.
+  - Mutación B: en `se_superponen` de `src/reservas/modelo.py` cambié [completar:
+    comparación original por la modificada]. `pytest` → 2 failed, Y 37 passed;
+    tests que fallaron. Revertí con `git restore src/reservas/modelo.py`; `pytest` →
+    [completar: 39 passed].
+
+- **Correcciones posteriores :** restauré el comentario del
+  `BEGIN IMMEDIATE` y agregué `test_consultar_disponibilidad_ignora_reservas_canceladas`.
+  `pytest` → [ 39 passed].
+- **Evidencia:** commit del agente [hash]; commit de correcciones [hash]; archivos
+  `src/reservas/repositorio.py` y `tests/test_repositorio.py`.
+- **Limitaciones conocidas:**
+  - El atajo del solicitante `consulta` queda documentado.
+  - Sin el comentario, la línea parece innecesaria. Alguien podría borrarla en una limpieza y volver el problema de la transacción que corregimos en la Tarea 2, sin que ningún test avise (ninguno prueba dos conexiones). El comentario es lo único que protege esa decisión. por eso se agrego el comentario.
+  - `BEGIN IMMEDIATE` en `consultar_disponibilidad` bloquea escrituras durante la lectura corregido; concurrencia está fuera de alcance.
+  Una consulta es de solo lectura, pero así toma el bloqueo de escritura. Mientras consulta, bloquea a cualquier otra conexión que quiera escribir, y si otra conexión ya está escribiendo, la consulta puede fallar con “database is locked”. Además es innecesario: un SELECT único ya es consistente por sí solo.
+  - Ninguna prueba comprueba `BEGIN IMMEDIATE` con dos conexiones simultáneas.
+
+

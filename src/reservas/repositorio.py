@@ -69,6 +69,9 @@ class RepositorioReservas:
         validar_reserva(unidad, solicitante, inicio, fin)
 
         with self._conexion:
+            # BEGIN IMMEDIATE abre la transacción y toma el bloqueo de escritura
+            # antes de leer, de modo que el chequeo de superposición y el INSERT
+            # ocurren dentro de la misma transacción.
             self._conexion.execute("BEGIN IMMEDIATE")
 
             conflicto = self._obtener_conflicto(unidad, inicio, fin)
@@ -120,9 +123,7 @@ class RepositorioReservas:
     def consultar_disponibilidad(self, unidad: str, inicio: str, fin: str) -> tuple[bool, dict | None]:
         self._validar_intervalo(unidad, inicio, fin)
 
-        with self._conexion:
-            self._conexion.execute("BEGIN IMMEDIATE")
-            conflicto = self._obtener_conflicto(unidad, inicio, fin)
+        conflicto = self._obtener_conflicto(unidad, inicio, fin)
 
         return (False, conflicto) if conflicto is not None else (True, None)
 
